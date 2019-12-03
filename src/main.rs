@@ -14,13 +14,23 @@ extern crate serde_derive;
 extern crate actix;
 extern crate actix_web;
 extern crate futures;
-use actix_web::{App, HttpServer, web};
+use actix_web::{http::header, App, HttpServer, web};
+
+use actix_cors::Cors;
 
 fn main() {
     let sys = actix::System::new("mystore");
 
     HttpServer::new(
     || App::new()
+        .wrap(
+            Cors::new()
+                .allowed_origin("http://localhost:3000")
+                .allowed_methods(vec!["GET", "POST"])
+                .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
+                .allowed_header(header::CONTENT_TYPE)
+                .max_age(3600),
+        )
         .service(
             web::resource("/products")
                 .route(web::get().to_async(handlers::products::index))
